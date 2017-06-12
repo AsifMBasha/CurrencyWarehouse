@@ -1,0 +1,50 @@
+CREATE TABLE EMPLOYEE (
+  id int(11) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(50),
+  JOINING_DATE DATE,
+  SALARY DECIMAL,
+  SSN varchar(10),
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE ExchangeRecords (
+  dealId varchar(20),
+  filename varchar(50),
+  FROMCURRENCY varchar(3),
+  TOCURRENCY varchar(3),
+  DEALTIME DATETIME,
+  DEALAMOUNT DECIMAL,
+  primary key (dealId)
+);
+
+
+CREATE TABLE InvalidExchangeRecord (
+  id int(11),
+  filename varchar(50),
+ recordtext varchar(10000),
+  primary key (id, filename)
+);
+
+
+CREATE TABLE countdealsTable (
+  currencyisocode varchar(3),
+  CountOfDeals int(10),
+  primary key (currencyisocode)
+);
+
+
+delimiter |
+
+CREATE TRIGGER updatecount AFTER INSERT ON ExchangeRecords
+  FOR EACH ROW
+  BEGIN
+  	IF NOT EXISTS (SELECT 1 FROM countdealsTable WHERE currencyisocode = NEW.FROMCURRENCY) THEN
+	    INSERT INTO countdealsTable (currencyisocode,CountOfDeals)
+	    VALUES (NEW.FROMCURRENCY,0);
+	END IF;
+    UPDATE countdealsTable SET CountOfDeals = CountOfDeals + 1 WHERE currencyisocode = NEW.FROMCURRENCY;
+  END;
+  |
+
+delimiter ;
